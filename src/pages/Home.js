@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import FlightSearchForm from "../components/FlightSearchForm";
 import FlightResult from "../components/FlightResult";
 import DarkModeToggle from "../components/DarkModeToggle";
+import LiveFlightMap from "../components/LiveFlightMap";
 
 const Home = () => {
   const [flights, setFlights] = useState([]);
@@ -112,7 +113,12 @@ const Home = () => {
           Next
         </button>
       </div>
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold text-center mb-4">Live Airline Tracker</h1>
+        <LiveFlightMap />
+      </div>
     </div>
+    
   );
 };
 
