@@ -19,8 +19,32 @@ const FlightSearchForm = ({ onSearch }) => {
     arrival: "",
   });
 
+  const [airportSuggestions, setAirportSuggestions] = useState([]);
+  const [inputField, setInputField] = useState("");
+
+  // Fetch airport suggestions from an external API
+  const fetchAirports = async (query) => {
+    if (query.length < 3) return;
+
+    const response = await fetch(`https://aviation-edge.com/v2/public/autocomplete?key=YOUR_API_KEY&query=${query}`);
+    const data = await response.json();
+    
+    setAirportSuggestions(data.airports || []);
+  };
+
   const handleChange = (e) => {
-    setFilters({ ...filters, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFilters({ ...filters, [name]: value });
+
+    if (name === "departure" || name === "arrival") {
+      setInputField(name);
+      fetchAirports(value);
+    }
+  };
+
+  const selectAirport = (code) => {
+    setFilters({ ...filters, [inputField]: code });
+    setAirportSuggestions([]);
   };
 
   const handleSubmit = (e) => {
@@ -33,87 +57,26 @@ const FlightSearchForm = ({ onSearch }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border rounded shadow-lg bg-white">
+    <form onSubmit={handleSubmit} className="p-4 border rounded shadow-lg bg-white dark:bg-gray-800 dark:text-white">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Flight Number Input */}
-        <div>
-          <label htmlFor="flightNumber" className="block mb-2 font-bold text-gray-700">
-            Flight Number
-          </label>
-          <input
-            type="text"
-            id="flightNumber"
-            name="flightNumber"
-            value={filters.flightNumber}
-            onChange={handleChange}
-            placeholder="Enter flight number"
-            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-
-        {/* Airline Dropdown */}
-        <div>
-          <label htmlFor="airline" className="block mb-2 font-bold text-gray-700">
-            Airline
-          </label>
-          <select
-            id="airline"
-            name="airline"
-            value={filters.airline}
-            onChange={handleChange}
-            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          >
-            <option value="">Select Airline</option>
-            {airlines.map((airline, index) => (
-              <option key={index} value={airline}>
-                {airline}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Departure Airport Input */}
-        <div>
-          <label htmlFor="departure" className="block mb-2 font-bold text-gray-700">
-            Departure Airport (IATA)
-          </label>
-          <input
-            type="text"
-            id="departure"
-            name="departure"
-            value={filters.departure}
-            onChange={handleChange}
-            placeholder="e.g., JFK, LAX"
-            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-
-        {/* Arrival Airport Input */}
-        <div>
-          <label htmlFor="arrival" className="block mb-2 font-bold text-gray-700">
-            Arrival Airport (IATA)
-          </label>
-          <input
-            type="text"
-            id="arrival"
-            name="arrival"
-            value={filters.arrival}
-            onChange={handleChange}
-            placeholder="e.g., DXB, LHR"
-            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+        <input name="flightNumber" placeholder="Flight Number" onChange={handleChange} className="p-2 border rounded" />
+        <input name="airline" placeholder="Airline" onChange={handleChange} className="p-2 border rounded" />
+        
+        <div className="relative">
+          <input name="departure" placeholder="Departure Airport" onChange={handleChange} className="p-2 border rounded" />
+          {airportSuggestions.length > 0 && (
+            <div className="absolute bg-white dark:bg-gray-700 border shadow-md mt-1 w-full">
+              {airportSuggestions.map((airport) => (
+                <div key={airport.code} className="p-2 hover:bg-gray-200 cursor-pointer" onClick={() => selectAirport(airport.code)}>
+                  {airport.name} ({airport.code})
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Submit Button */}
-      <div className="flex justify-center mt-4">
-        <button
-          type="submit"
-          className="px-6 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition duration-300"
-        >
-          Search Flights
-        </button>
-      </div>
+      <button type="submit" className="mt-4 p-2 bg-blue-600 text-white rounded">Search Flights</button>
     </form>
   );
 };

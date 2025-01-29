@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from "react";
 import FlightSearchForm from "../components/FlightSearchForm";
 import FlightResult from "../components/FlightResult";
+import DarkModeToggle from "../components/DarkModeToggle";
 
 const Home = () => {
   const [flights, setFlights] = useState([]);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({});
+  const [recentSearches, setRecentSearches] = useState([]);
   const [socket, setSocket] = useState(null);
+
+  // Load recent searches from local storage
+  useEffect(() => {
+    const savedSearches = JSON.parse(localStorage.getItem("recentSearches")) || [];
+    setRecentSearches(savedSearches);
+  }, []);
 
   // Function to fetch flights (search & pagination)
   const fetchFlights = async (params) => {
@@ -30,6 +38,11 @@ const Home = () => {
       setFlights(data);
       setPage(params.page || 1);
       setFilters(params);
+
+      // Save the search history
+      const updatedSearches = [params, ...recentSearches.slice(0, 4)];
+      setRecentSearches(updatedSearches);
+      localStorage.setItem("recentSearches", JSON.stringify(updatedSearches));
     } catch (err) {
       setError(err.message);
     }
@@ -55,21 +68,33 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">Live Airline Tracker</h1>
+    <div className="container mx-auto p-4 dark:bg-gray-900 dark:text-white">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-center">Live Airline Tracker</h1>
+        <DarkModeToggle />
+      </div>
+
       <FlightSearchForm onSearch={fetchFlights} />
-      
-      {error && <p className="text-red-600 mt-4">{error}</p>}
-      
-      {flights.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {flights.map((flight, index) => (
-            <FlightResult key={index} flight={flight} />
+
+      {/* Recent Searches */}
+      <div className="mt-4">
+        <h2 className="text-lg font-bold">Recent Searches</h2>
+        <div className="flex gap-2">
+          {recentSearches.map((search, index) => (
+            <button key={index} onClick={() => fetchFlights(search)} className="px-3 py-1 border rounded">
+              {search.flightNumber || search.airline || search.departure || search.arrival}
+            </button>
           ))}
         </div>
-      ) : (
-        <p className="text-center mt-4">No flights found.</p>
-      )}
+      </div>
+
+      {error && <p className="text-red-600 mt-4">{error}</p>}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        {flights.map((flight, index) => (
+          <FlightResult key={index} flight={flight} />
+        ))}
+      </div>
 
       {/* Pagination Controls */}
       <div className="flex justify-center mt-4">
