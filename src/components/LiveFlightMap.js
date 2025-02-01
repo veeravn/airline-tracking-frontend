@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Airplane icon
+// Custom airplane icon
 const airplaneIcon = new L.Icon({
   iconUrl: "https://cdn-icons-png.flaticon.com/512/172/172967.png",
   iconSize: [25, 25],
@@ -14,33 +14,41 @@ const LiveFlightMap = () => {
   const [flights, setFlights] = useState([]);
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080/ws/live-updates");
-
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      setFlights(data);
+    const fetchFlights = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/v1/live-flights`);
+        if (!response.ok) throw new Error("Failed to fetch flights");
+        const data = await response.json();
+        setFlights(data);
+      } catch (error) {
+        console.error("Error fetching flight data:", error);
+      }
     };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket Error:", error);
-    };
-
-    return () => socket.close();
+    fetchFlights();
+    const interval = setInterval(fetchFlights, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <MapContainer center={[20, 0]} zoom={2} className="w-full h-96 rounded-lg shadow-lg">
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      
       {flights.map((flight, index) => (
-        <Marker key={index} position={[flight.latitude, flight.longitude]} icon={airplaneIcon}>
-          <Popup>
-            <h3>{flight.flight_number}</h3>
-            <p>Airline: {flight.airline}</p>
-            <p>Departure: {flight.departure}</p>
-            <p>Arrival: {flight.arrival}</p>
-            <p>Status: <strong>{flight.status}</strong></p>
-          </Popup>
-        </Marker>
+        flight.live && (
+          <Marker
+            key={index}
+            position={[flight.live.latitude, flight.live.longitude]}
+            icon={airplaneIcon}
+          >
+            <Popup>
+              <h3 className="font-bold">{flight.flight.number} - {flight.airline.name}</h3>
+              <p><strong>Status:</strong> {flight.flight_status}</p>
+              <p><strong>Altitude:</strong> {flight.live.altitude} ft</p>
+              <p><strong>Speed:</strong> {flight.live.speed_horizontal} km/h</p>
+            </Popup>
+          </Marker>
+        )
       ))}
     </MapContainer>
   );

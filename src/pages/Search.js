@@ -6,7 +6,6 @@ const Search = () => {
   const [flights, setFlights] = useState([]);
   const [error, setError] = useState("");
 
-  // Function to fetch flight search results
   const fetchFlights = async (filters) => {
     setError("");
     setFlights([]);
