@@ -26,7 +26,8 @@ const FlightSearchForm = ({ onSearch }) => {
   const fetchAirports = async (query) => {
     if (query.length < 3) return;
 
-    const response = await fetch(`https://aviation-edge.com/v2/public/autocomplete?key=YOUR_API_KEY&query=${query}`);
+    const apiKey = process.env.AVIATIONSTACK_API_KEY;
+    const response = await fetch(`https://aviation-edge.com/v2/public/autocomplete?key=${apiKey}&query=${query}`);
     const data = await response.json();
     
     setAirportSuggestions(data.airports || []);
