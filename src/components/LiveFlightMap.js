@@ -16,20 +16,24 @@ const LiveFlightMap = () => {
   useEffect(() => {
     const fetchFlights = async () => {
       try {
+        console.log("Fetching live flight data...");
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/v1/live-flights`);
+        console.log("API Response Status:", response.status);
         if (!response.ok) throw new Error("Failed to fetch flights");
         const data = await response.json();
+        console.log("Flight Data:", data);
         setFlights(data);
       } catch (error) {
         console.error("Error fetching flight data:", error);
       }
     };
 
+    console.log("use effects: backend url: " + `${process.env.REACT_APP_BACKEND_URL}`);
     fetchFlights();
     const interval = setInterval(fetchFlights, 10000);
     return () => clearInterval(interval);
   }, []);
-
+  console.log("return backend url: " + `${process.env.REACT_APP_BACKEND_URL}`);
   return (
     <MapContainer center={[20, 0]} zoom={2} className="w-full h-96 rounded-lg shadow-lg">
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
