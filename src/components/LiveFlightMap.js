@@ -5,7 +5,7 @@ import L from "leaflet";
 
 // Custom airplane icon
 const airplaneIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/172/172967.png",
+  iconUrl: "https://cdn-icons-png.flaticon.com/512/3097/3097184.png",
   iconSize: [25, 25],
   iconAnchor: [12, 12],
 });
